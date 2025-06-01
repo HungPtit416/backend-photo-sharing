@@ -14,12 +14,15 @@ const requireAuth = require("./middleware/auth"); // Authentication middleware
 dbConnect();
 
 // CORS configuration to allow credentials
-app.use(
-  cors({
-    origin: "*",
-    credentials: true,
-  })
-);
+const corsOptions = {
+  origin: true, // Allow all origins
+  credentials: true, // Allow cookies
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+  exposedHeaders: ["Content-Range", "X-Content-Range"],
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // Serve static files from images directory
