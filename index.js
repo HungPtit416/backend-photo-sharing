@@ -44,6 +44,7 @@ app.use(
 
 // Routes
 app.use("/admin", AuthRouter); // Authentication routes (no auth required)
+app.use("/user", UserRouter); // User registration route (no auth required for POST /user)
 app.use("/api/user", requireAuth, UserRouter); // Protected user routes
 app.use("/api/photo", requireAuth, PhotoRouter); // Protected photo routes
 

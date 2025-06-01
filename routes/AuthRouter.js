@@ -2,14 +2,18 @@ const express = require("express");
 const User = require("../db/userModel");
 const router = express.Router();
 
-// POST /admin/login - Login a user
+// POST /admin/login - Login a user with password
 router.post("/login", async (req, res) => {
   try {
-    const { login_name } = req.body;
+    const { login_name, password } = req.body;
 
-    // Check if login_name is provided
+    // Check if login_name and password are provided
     if (!login_name) {
       return res.status(400).json({ error: "Login name is required" });
+    }
+
+    if (!password) {
+      return res.status(400).json({ error: "Password is required" });
     }
 
     // Find user by login_name
@@ -17,6 +21,11 @@ router.post("/login", async (req, res) => {
 
     if (!user) {
       return res.status(400).json({ error: "Invalid login name" });
+    }
+
+    // Check password (simple string comparison for now)
+    if (user.password !== password) {
+      return res.status(400).json({ error: "Invalid password" });
     }
 
     // Store user info in session
@@ -29,7 +38,9 @@ router.post("/login", async (req, res) => {
     // Return user info (excluding sensitive data)
     res.status(200).json({
       _id: user._id,
+      first_name: user.first_name,
       last_name: user.last_name,
+      login_name: user.login_name,
       location: user.location,
       description: user.description,
       occupation: user.occupation,
@@ -58,7 +69,9 @@ router.get("/current", async (req, res) => {
     // Return user info (excluding sensitive data)
     res.status(200).json({
       _id: user._id,
+      first_name: user.first_name,
       last_name: user.last_name,
+      login_name: user.login_name,
       location: user.location,
       description: user.description,
       occupation: user.occupation,
