@@ -24,9 +24,9 @@ const corsOptions = {
     "http://127.0.0.1:8080",
     // Add your sandbox domains here
     "https://codesandbox.io",
-    "https://*.codesandbox.io",
+    //"https://*.codesandbox.io",
     "https://3pqzgw-8081.csb.app",
-    "https://*.csb.app",
+    //"https://*.csb.app",
   ],
   credentials: true, // Enable credentials
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
@@ -73,6 +73,17 @@ app.use("/user", UserRouter); // User registration route (no auth required for P
 app.use("/api/user", requireAuth, UserRouter); // Protected user routes
 app.use("/api/photo", requireAuth, PhotoRouter); // Protected photo routes
 
+app.get("/api/test-cors", (req, res) => {
+  console.log("Origin:", req.get("Origin"));
+  console.log("Cookies:", req.cookies);
+
+  res.json({
+    message: "CORS with credentials is working!",
+    origin: req.get("Origin") || "No origin header",
+    cookies: req.cookies,
+    timestamp: new Date().toISOString(),
+  });
+});
 app.get("/", (request, response) => {
   response.send({ message: "Hello from photo-sharing app API!" });
 });
