@@ -35,8 +35,9 @@ app.use(
       mongoUrl: process.env.DB_URL, // Use your MongoDB Atlas connection string
     }),
     cookie: {
-      secure: false, // Set to true if using HTTPS
+      secure: true,
       httpOnly: true,
+      sameSite: "none",
       maxAge: 1000 * 60 * 60 * 24, // 24 hours
     },
   })
