@@ -10,19 +10,40 @@ const UserRouter = require("./routes/UserRouter");
 const PhotoRouter = require("./routes/PhotoRouter");
 const AuthRouter = require("./routes/AuthRouter"); // New auth routes
 const requireAuth = require("./middleware/auth"); // Authentication middleware
-
+const cookieParser = require("cookie-parser");
 dbConnect();
 
 // CORS configuration to allow credentials
 const corsOptions = {
-  origin: true, // Allow all origins
-  credentials: true, // Allow cookies
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
-  exposedHeaders: ["Content-Range", "X-Content-Range"],
+  origin: [
+    "http://localhost:3000",
+    "http://localhost:3001",
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:3001",
+    "http://localhost:8080",
+    "http://127.0.0.1:8080",
+    // Add your sandbox domains here
+    "https://codesandbox.io",
+    "https://*.codesandbox.io",
+    "https://3pqzgw-8081.csb.app",
+    "https://*.csb.app",
+  ],
+  credentials: true, // Enable credentials
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+  allowedHeaders: [
+    "Origin",
+    "X-Requested-With",
+    "Content-Type",
+    "Accept",
+    "Authorization",
+    "Cache-Control",
+    "X-API-Key",
+  ],
+  exposedHeaders: ["set-cookie"],
 };
 
 app.use(cors(corsOptions));
+app.use(cookieParser());
 app.use(express.json());
 
 // Serve static files from images directory
