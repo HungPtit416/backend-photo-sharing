@@ -14,10 +14,11 @@ dbConnect();
 // CORS configuration to allow credentials
 app.use(
   cors({
-    origin: "http://localhost:3000",
+    origin: ["http://localhost:3000", "https://cvc35l.csb.app"],
     credentials: true,
   })
 );
+
 app.use(express.json());
 
 // Serve static files from images directory
