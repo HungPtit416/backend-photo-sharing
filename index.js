@@ -1,15 +1,13 @@
 const express = require("express");
 const app = express();
 const cors = require("cors");
-const session = require("express-session");
-const MongoStore = require("connect-mongo");
 const path = require("path");
-require("dotenv").config(); // Load environment variables
+require("dotenv").config();
 const dbConnect = require("./db/dbConnect");
 const UserRouter = require("./routes/UserRouter");
 const PhotoRouter = require("./routes/PhotoRouter");
-const AuthRouter = require("./routes/AuthRouter"); // New auth routes
-const requireAuth = require("./middleware/auth"); // Authentication middleware
+const AuthRouter = require("./routes/AuthRouter");
+const requireAuth = require("./middleware/auth");
 
 dbConnect();
 
@@ -25,26 +23,9 @@ app.use(express.json());
 // Serve static files from images directory
 app.use("/images", express.static(path.join(__dirname, "images")));
 
-// Session configuration using MongoDB Atlas
-app.use(
-  session({
-    secret: process.env.SESSION_SECRET || "your-secret-key-here", // Use env variable or fallback
-    resave: false,
-    saveUninitialized: false,
-    store: MongoStore.create({
-      mongoUrl: process.env.DB_URL, // Use your MongoDB Atlas connection string
-    }),
-    cookie: {
-      secure: false, // Set to true if using HTTPS
-      httpOnly: true,
-      maxAge: 1000 * 60 * 60 * 24, // 24 hours
-    },
-  })
-);
-
 // Routes
-app.use("/admin", AuthRouter); // Authentication routes (no auth required)
-app.use("/user", UserRouter); // User registration route (no auth required for POST /user)
+app.use("/admin", AuthRouter); // Authentication routes
+app.use("/user", UserRouter); // User registration route
 app.use("/api/user", requireAuth, UserRouter); // Protected user routes
 app.use("/api/photo", requireAuth, PhotoRouter); // Protected photo routes
 

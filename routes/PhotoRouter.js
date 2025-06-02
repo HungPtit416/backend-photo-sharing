@@ -50,8 +50,8 @@ const upload = multer({
 // Route upload ảnh mới
 router.post("/photos/new", upload.single("photo"), async (req, res) => {
   try {
-    // Kiểm tra user đã login chưa
-    if (!req.session.user_id) {
+    // Kiểm tra user đã login chưa (JWT authentication đã được xử lý bởi middleware)
+    if (!req.user_id) {
       return res.status(401).json({ error: "Unauthorized - Please log in" });
     }
 
@@ -60,17 +60,12 @@ router.post("/photos/new", upload.single("photo"), async (req, res) => {
       return res.status(400).json({ error: "No file uploaded" });
     }
 
-    // Kiểm tra user có tồn tại không
-    const user = await User.findById(req.session.user_id);
-    if (!user) {
-      return res.status(404).json({ error: "User not found" });
-    }
-
+    // User đã được verify bởi middleware, không cần check lại
     // Tạo Photo object mới
     const newPhoto = new Photo({
       file_name: req.file.filename,
       date_time: new Date(),
-      user_id: req.session.user_id,
+      user_id: req.user_id, // Sử dụng user_id từ JWT token
       comments: [],
     });
 
@@ -154,8 +149,8 @@ router.post("/commentsOfPhoto/:photo_id", async (req, res) => {
   const { photo_id } = req.params;
   const { comment } = req.body;
 
-  // Check if user is authenticated (user_id should be in session)
-  if (!req.session.user_id) {
+  // Check if user is authenticated (JWT authentication đã được xử lý bởi middleware)
+  if (!req.user_id) {
     return res.status(401).json({ error: "Unauthorized - Please log in" });
   }
 
@@ -176,17 +171,14 @@ router.post("/commentsOfPhoto/:photo_id", async (req, res) => {
       return res.status(404).json({ error: "Photo not found" });
     }
 
-    // Check if user exists
-    const user = await User.findById(req.session.user_id);
-    if (!user) {
-      return res.status(404).json({ error: "User not found" });
-    }
+    // User đã được verify bởi middleware, sử dụng req.user thay vì query lại
+    const user = req.user;
 
     // Create new comment object
     const newComment = {
       comment: comment.trim(),
       date_time: new Date(),
-      user_id: req.session.user_id,
+      user_id: req.user_id, // Sử dụng user_id từ JWT token
     };
 
     // Add comment to photo
