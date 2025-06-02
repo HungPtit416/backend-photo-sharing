@@ -16,7 +16,7 @@ dbConnect();
 // CORS configuration to allow credentials
 app.use(
   cors({
-    origin: "http://localhost:3000",
+    origin: "https://cvc35l.csb.app",
     credentials: true,
   })
 );
