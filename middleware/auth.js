@@ -27,7 +27,7 @@ async function requireAuth(req, res, next) {
     // Verify token
     const decoded = jwt.verify(
       token,
-      process.env.JWT_SECRET || "your-jwt-secret-key"
+      process.env.JWT_SECRET || "long-and-random-secret-key-B22DCCN416"
     );
 
     // Get user from database to ensure user still exists

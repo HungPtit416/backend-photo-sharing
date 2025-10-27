@@ -6,6 +6,7 @@ require("dotenv").config();
 const dbConnect = require("./db/dbConnect");
 const UserRouter = require("./routes/UserRouter");
 const PhotoRouter = require("./routes/PhotoRouter");
+const PostRouter = require("./routes/PostRouter"); // Thêm PostRouter
 const AuthRouter = require("./routes/AuthRouter");
 const requireAuth = require("./middleware/auth");
 
@@ -14,7 +15,11 @@ dbConnect();
 // CORS configuration to allow credentials
 app.use(
   cors({
-    origin: ["http://localhost:3000", "https://cvc35l.csb.app"],
+    origin: [
+      "http://localhost:3000",
+      "https://cvc35l.csb.app",
+      "https://jw62pn.csb.app",
+    ],
     credentials: true,
   })
 );
@@ -29,6 +34,7 @@ app.use("/admin", AuthRouter); // Authentication routes
 app.use("/user", UserRouter); // User registration route
 app.use("/api/user", requireAuth, UserRouter); // Protected user routes
 app.use("/api/photo", requireAuth, PhotoRouter); // Protected photo routes
+app.use("/api/post", requireAuth, PostRouter); // Protected post routes
 
 app.get("/", (request, response) => {
   response.send({ message: "Hello from photo-sharing app API!" });

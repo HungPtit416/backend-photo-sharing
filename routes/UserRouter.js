@@ -105,4 +105,50 @@ router.get("/:id", async (request, response) => {
   }
 });
 
+router.patch("/:id", async (request, response) => {
+  try {
+    const { id } = request.params;
+    if (!request.user_id) {
+      return response
+        .status(401)
+        .json({ error: "Unauthorized - Please log in" });
+    }
+
+    // Check if user is trying to update their own profile
+    if (request.user_id !== id) {
+      return response
+        .status(403)
+        .json({ error: "You can only update your own profile" });
+    }
+
+    const { first_name, last_name, location, description, occupation } =
+      request.body;
+    const user = await User.findByIdAndUpdate(
+      id,
+      {
+        first_name: first_name ? first_name.trim() : undefined,
+        last_name: last_name ? last_name.trim() : undefined,
+        location: location ? location.trim() : undefined,
+        description: description ? description.trim() : undefined,
+        occupation: occupation ? occupation.trim() : undefined,
+      },
+      { new: true }
+    );
+    if (!user) {
+      return response.status(400).json({ message: "User not found" });
+    }
+    response.json({
+      _id: user._id,
+      first_name: user.first_name,
+      last_name: user.last_name,
+      location: user.location,
+      description: user.description,
+      occupation: user.occupation,
+    });
+  } catch (error) {
+    console.error("Error updating user:", error);
+    response.status(500).json({ message: "Internal server error" });
+  }
+});
+
 module.exports = router;

@@ -7,7 +7,7 @@ const router = express.Router();
 function generateToken(userId) {
   return jwt.sign(
     { userId: userId },
-    process.env.JWT_SECRET || "your-jwt-secret-key",
+    process.env.JWT_SECRET || "long-and-random-secret-key-B22DCCN416",
     { expiresIn: "24h" } // Token expires in 24 hours
   );
 }
@@ -76,7 +76,7 @@ router.get("/current", async (req, res) => {
       // Verify token
       const decoded = jwt.verify(
         token,
-        process.env.JWT_SECRET || "your-jwt-secret-key"
+        process.env.JWT_SECRET || "long-and-random-secret-key-B22DCCN416"
       );
 
       // Get user details
@@ -117,4 +117,63 @@ router.post("/logout", (req, res) => {
   }
 });
 
+router.post("/change-password", async (req, res) => {
+  try {
+    const { current_password, new_password } = req.body;
+
+    // Get token from Authorization header
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res
+        .status(401)
+        .json({ error: "Unauthorized - No token provided" });
+    }
+
+    const token = authHeader.substring(7);
+
+    try {
+      // Verify token
+      const decoded = jwt.verify(
+        token,
+        process.env.JWT_SECRET || "long-and-random-secret-key-B22DCCN416"
+      );
+
+      // Get user details
+      const user = await User.findById(decoded.userId);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      // Validate input
+      if (!current_password || !new_password) {
+        return res.status(400).json({
+          error: "Current and new passwords are required",
+        });
+      }
+
+      if (new_password.trim().length < 6) {
+        return res.status(400).json({
+          error: "New password must be at least 6 characters long",
+        });
+      }
+
+      // Verify current password
+      if (current_password !== user.password) {
+        return res.status(400).json({ error: "Current password is incorrect" });
+      }
+
+      // Update password
+      user.password = new_password;
+      await user.save();
+
+      res.status(200).json({ message: "Password changed successfully" });
+    } catch (tokenError) {
+      return res.status(401).json({ error: "Invalid or expired token" });
+    }
+  } catch (error) {
+    console.error("Change password error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
 module.exports = router;

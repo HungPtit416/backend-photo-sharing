@@ -134,6 +134,13 @@ router.get("/photosOfUser/:id", async (req, res) => {
           file_name: photo.file_name,
           date_time: photo.date_time,
           comments,
+          likesCount: photo.likes ? photo.likes.length : 0,
+          liked:
+            req.user_id && photo.likes
+              ? photo.likes.some(
+                  (like) => like.toString() === req.user_id.toString()
+                )
+              : false,
         };
       })
     );
@@ -145,21 +152,56 @@ router.get("/photosOfUser/:id", async (req, res) => {
   }
 });
 
-router.post("/commentsOfPhoto/:photo_id", async (req, res) => {
+router.delete("/photos/:photo_id", async (req, res) => {
   const { photo_id } = req.params;
-  const { comment } = req.body;
 
-  // Check if user is authenticated (JWT authentication đã được xử lý bởi middleware)
+  // Check if user is authenticated
   if (!req.user_id) {
     return res.status(401).json({ error: "Unauthorized - Please log in" });
   }
 
-  // Validate photo_id format
   if (!mongoose.Types.ObjectId.isValid(photo_id)) {
     return res.status(400).json({ error: "Invalid photo ID format" });
   }
 
-  // Validate comment content
+  try {
+    const photo = await Photo.findById(photo_id);
+    if (!photo) {
+      return res.status(404).json({ error: "Photo not found" });
+    }
+
+    if (photo.user_id.toString() !== req.user_id) {
+      return res
+        .status(403)
+        .json({ error: "You can only delete your own photos" });
+    }
+
+    const filePath = path.join(__dirname, "../images", photo.file_name);
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
+
+    await Photo.findByIdAndDelete(photo_id);
+
+    res.status(200).json({ message: "Photo deleted successfully" });
+  } catch (err) {
+    console.error("Error deleting photo:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+router.post("/commentsOfPhoto/:photo_id", async (req, res) => {
+  const { photo_id } = req.params;
+  const { comment } = req.body;
+
+  if (!req.user_id) {
+    return res.status(401).json({ error: "Unauthorized - Please log in" });
+  }
+
+  if (!mongoose.Types.ObjectId.isValid(photo_id)) {
+    return res.status(400).json({ error: "Invalid photo ID format" });
+  }
+
   if (!comment || typeof comment !== "string" || comment.trim() === "") {
     return res.status(400).json({ error: "Comment cannot be empty" });
   }
@@ -174,18 +216,15 @@ router.post("/commentsOfPhoto/:photo_id", async (req, res) => {
     // User đã được verify bởi middleware, sử dụng req.user thay vì query lại
     const user = req.user;
 
-    // Create new comment object
     const newComment = {
       comment: comment.trim(),
       date_time: new Date(),
-      user_id: req.user_id, // Sử dụng user_id từ JWT token
+      user_id: req.user_id,
     };
 
-    // Add comment to photo
     photo.comments.push(newComment);
     await photo.save();
 
-    // Get the newly added comment with populated user info
     const addedComment = photo.comments[photo.comments.length - 1];
     const commentWithUser = {
       _id: addedComment._id,
@@ -208,4 +247,56 @@ router.post("/commentsOfPhoto/:photo_id", async (req, res) => {
   }
 });
 
+router.patch("/commentsOfPhoto/:photo_id/:comment_id", async (req, res) => {
+  const { photo_id, comment_id } = req.params;
+  const { comment } = req.body;
+  if (!req.user_id) {
+    return res.status(401).json({ error: "Please log in" });
+  }
+  if (!mongoose.Types.ObjectId.isValid(photo_id)) {
+    return res.status(400).json({ error: "Invalid format" });
+  }
+  if (!comment || typeof comment !== "string" || comment.trim() === "") {
+    return res.status(400).json({ error: "Comment cannot be empty" });
+  }
+  try {
+    const photo = await Photo.findById(photo_id);
+    if (!photo) {
+      return res.status(404).json({ error: "Photo not found" });
+    }
+
+    const commentToEdit = photo.comments.id(comment_id);
+    if (!commentToEdit) {
+      return res.status(404).json({ error: "Comment not found" });
+    }
+
+    if (commentToEdit.user_id.toString() !== req.user_id) {
+      return res.status(403).json({ error: "You can only edit your comments" });
+    }
+
+    commentToEdit.comment = comment.trim();
+    commentToEdit.date_time = new Date();
+    await photo.save();
+
+    const user = req.user;
+
+    const updatedComment = {
+      _id: commentToEdit._id,
+      comment: commentToEdit.comment,
+      date_time: commentToEdit.date_time,
+      user: {
+        _id: user._id,
+        first_name: user.first_name,
+        last_name: user.last_name,
+      },
+    };
+    res.status(200).json({
+      message: "Comment updated successfully",
+      comment: updatedComment,
+    });
+  } catch (err) {
+    console.error("Error in /commentsOfPhoto/:photo_id/:comment_id:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
 module.exports = router;
