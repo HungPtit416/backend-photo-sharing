@@ -18,6 +18,7 @@ const commentSchema = new mongoose.Schema({
 const photoSchema = new mongoose.Schema({
   // Name of the file containing the photo (in the project6/images directory).
   file_name: { type: String },
+  url: { type: String },
   // The date and time when the photo was added to the database.
   date_time: { type: Date, default: Date.now },
   // The ID of the user who created the photo.

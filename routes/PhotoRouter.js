@@ -64,6 +64,7 @@ router.post("/photos/new", upload.single("photo"), async (req, res) => {
     // Tạo Photo object mới
     const newPhoto = new Photo({
       file_name: req.file.filename,
+      url: `/images/${req.file.filename}`,
       date_time: new Date(),
       user_id: req.user_id, // Sử dụng user_id từ JWT token
       comments: [],
@@ -77,6 +78,7 @@ router.post("/photos/new", upload.single("photo"), async (req, res) => {
       photo: {
         _id: savedPhoto._id,
         file_name: savedPhoto.file_name,
+        url: `/images/${savedPhoto.file_name}`,
         date_time: savedPhoto.date_time,
         user_id: savedPhoto.user_id,
         comments: [],
