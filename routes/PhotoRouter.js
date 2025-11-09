@@ -240,8 +240,9 @@ router.post("/commentsOfPhoto/:photo_id", async (req, res) => {
         last_name: user.last_name,
       },
     };
-    broadcast("new-comment", {
+   broadcast("new-comment", {
       photo_id,
+      photo_owner_id: photo.user_id.toString(),
       comment: commentWithUser,
     });
 
