@@ -6,7 +6,7 @@ const path = require("path");
 const fs = require("fs");
 const Photo = require("../db/photoModel");
 const User = require("../db/userModel");
-
+const { broadcast } = require("../realtime/sseManager");
 // Cấu hình multer để upload file
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -72,6 +72,8 @@ router.post("/photos/new", upload.single("photo"), async (req, res) => {
 
     // Lưu vào database
     const savedPhoto = await newPhoto.save();
+
+    broadcast("new-photo", savedPhoto);
 
     res.status(201).json({
       message: "Photo uploaded successfully",

@@ -14,7 +14,7 @@ const PostRouter = require("./routes/PostRouter");
 const AuthRouter = require("./routes/AuthRouter");
 const requireAuth = require("./middleware/auth");
 const User = require("./db/userModel");
-
+const sseRouter = require("./realtime/sseRouter");
 dbConnect();
 
 // CORS configuration
@@ -50,11 +50,12 @@ global.blacklistToken = blacklistToken;
 global.isTokenBlacklisted = isTokenBlacklisted;
 
 // Routes
-app.use("/admin", AuthRouter);
-app.use("/user", UserRouter);
-app.use("/api/user", requireAuth, UserRouter);
-app.use("/api/photo", requireAuth, PhotoRouter);
-app.use("/api/post", requireAuth, PostRouter);
+app.use("/api/stream", sseRouter);
+app.use("/admin", AuthRouter); // Authentication routes
+app.use("/user", UserRouter); // User registration route
+app.use("/api/user", requireAuth, UserRouter); // Protected user routes
+app.use("/api/photo", requireAuth, PhotoRouter); // Protected photo routes
+app.use("/api/post", requireAuth, PostRouter); // Protected post routes
 
 app.get("/", (request, response) => {
   response.send({ message: "Hello from photo-sharing app API!" });
