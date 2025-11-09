@@ -106,10 +106,40 @@ router.get("/current", async (req, res) => {
 });
 
 // POST /admin/logout - Logout a user
-router.post("/logout", (req, res) => {
+router.post("/logout", async (req, res) => {
   try {
-    // With JWT, logout is handled on the client side by removing the token
-    // Server doesn't need to do anything special for stateless JWT
+    // Get token from Authorization header
+    const authHeader = req.headers.authorization;
+
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      const token = authHeader.substring(7);
+
+      try {
+        // Verify token to get userId
+        const decoded = jwt.verify(
+          token,
+          process.env.JWT_SECRET || "long-and-random-secret-key-B22DCCN416"
+        );
+
+        // ============= ADD TOKEN TO BLACKLIST =============
+        if (typeof global.blacklistToken === "function") {
+          global.blacklistToken(token);
+          console.log(`🚫 Token blacklisted for user: ${decoded.userId}`);
+        }
+
+        // ============= DISCONNECT ALL USER'S WEBSOCKETS =============
+        if (typeof global.disconnectUserWebSockets === "function") {
+          global.disconnectUserWebSockets(decoded.userId.toString());
+          console.log(
+            `🔌 Disconnected all WebSockets for user: ${decoded.userId}`
+          );
+        }
+      } catch (tokenError) {
+        // Token invalid or expired, but still allow logout
+        console.log("Logout with invalid token, allowing anyway");
+      }
+    }
+
     res.status(200).json({ message: "Successfully logged out" });
   } catch (error) {
     console.error("Logout error:", error);
@@ -176,4 +206,5 @@ router.post("/change-password", async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 });
+
 module.exports = router;

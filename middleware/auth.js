@@ -24,6 +24,18 @@ async function requireAuth(req, res, next) {
 
     const token = authHeader.substring(7); // Remove 'Bearer ' prefix
 
+    // ============= CHECK TOKEN BLACKLIST =============
+    // Check if token has been blacklisted (user logged out)
+    if (typeof global.isTokenBlacklisted === "function") {
+      if (global.isTokenBlacklisted(token)) {
+        return res
+          .status(401)
+          .json({
+            error: "Unauthorized - Token has been invalidated (logged out)",
+          });
+      }
+    }
+
     // Verify token
     const decoded = jwt.verify(
       token,
