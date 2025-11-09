@@ -240,6 +240,10 @@ router.post("/commentsOfPhoto/:photo_id", async (req, res) => {
         last_name: user.last_name,
       },
     };
+    broadcast("new-comment", {
+      photo_id,
+      comment: commentWithUser,
+    });
 
     res.status(201).json({
       message: "Comment added successfully",
