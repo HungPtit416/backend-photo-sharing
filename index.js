@@ -63,7 +63,10 @@ app.get("/", (request, response) => {
 
 // Create HTTP server
 const server = http.createServer(app);
-const wss = new WebSocketServer({ server });
+const wss = new WebSocketServer({
+  server,
+  path: "/ws",
+});
 
 // ============= USER TRACKING =============
 const userConnections = new Map();
