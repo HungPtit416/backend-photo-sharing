@@ -19,11 +19,7 @@ dbConnect();
 // CORS configuration
 app.use(
   cors({
-    origin: [
-      "http://localhost:3000",
-      "https://cvc35l.csb.app",
-      "https://jw62pn.csb.app",
-    ],
+    origin: ["http://localhost:3000", "http://app.live2am.com"],
     credentials: true,
   })
 );
