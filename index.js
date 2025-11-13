@@ -55,7 +55,6 @@ app.use("/admin", AuthRouter); // Authentication routes
 app.use("/user", UserRouter); // User registration route
 app.use("/api/user", requireAuth, UserRouter); // Protected user routes
 app.use("/api/photo", requireAuth, PhotoRouter); // Protected photo routes
-app.use("/api/post", requireAuth, PostRouter); // Protected post routes
 app.use("/api/chat", requireAuth, ChatRouter); // Protected chat routes
 
 app.get("/", (request, response) => {
@@ -212,7 +211,6 @@ wss.on("connection", async (ws, req) => {
       }
     });
   } catch (error) {
-    console.error("Token verification failed:", error.message);
     console.error("Token verification failed:", error.message);
     ws.close(1008, "Invalid authentication token");
   }    
