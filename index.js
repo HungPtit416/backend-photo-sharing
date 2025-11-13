@@ -12,6 +12,7 @@ const UserRouter = require("./routes/UserRouter");
 const PhotoRouter = require("./routes/PhotoRouter");
 const PostRouter = require("./routes/PostRouter");
 const AuthRouter = require("./routes/AuthRouter");
+const ChatRouter = require("./routes/ChatRouter");
 const requireAuth = require("./middleware/auth");
 const User = require("./db/userModel");
 const sseRouter = require("./realtime/sseRouter");
@@ -56,6 +57,7 @@ app.use("/user", UserRouter); // User registration route
 app.use("/api/user", requireAuth, UserRouter); // Protected user routes
 app.use("/api/photo", requireAuth, PhotoRouter); // Protected photo routes
 app.use("/api/post", requireAuth, PostRouter); // Protected post routes
+app.use("/api/chat", requireAuth, ChatRouter); // Protected chat routes
 
 app.get("/", (request, response) => {
   response.send({ message: "Hello from photo-sharing app API!" });
@@ -64,6 +66,7 @@ app.get("/", (request, response) => {
 // Create HTTP server
 const server = http.createServer(app);
 const wss = new WebSocketServer({ server });
+global.wss = wss;
 
 // ============= USER TRACKING =============
 const userConnections = new Map();
@@ -186,6 +189,10 @@ wss.on("connection", async (ws, req) => {
         const data = JSON.parse(message.toString());
         if (data.type === "PING") {
           ws.send(JSON.stringify({ type: "PONG" }));
+        } else if (data.type === "JOIN_CHAT") {
+          // User tham gia chat room
+          ws.chatId = data.chatId;
+          console.log(`User ${ws.username} joined chat ${data.chatId}`);
         }
       } catch (error) {
         console.error("Error parsing message:", error);
@@ -208,10 +215,26 @@ wss.on("connection", async (ws, req) => {
       }
     });
   } catch (error) {
-    console.error("❌ Token verification failed:", error.message);
+    console.error("Token verification failed:", error.message);
     ws.close(1008, "Invalid authentication token");
-  }
+  }    
 });
+
+// Function để broadcast tin nhắn chat
+global.broadcastChatMessage = function (chatId, messageData, senderId) {
+  wss.clients.forEach((client) => {
+    if (client.readyState === 1 && 
+        client.chatId === chatId && 
+        client.userId !== senderId) {
+      try {
+        client.send(JSON.stringify(messageData));
+        console.log(`Message sent to user ${client.userId}`);
+      } catch (error) {
+        console.error("Error sending message:", error);
+      }
+    }
+  });
+};
 
 global.disconnectUserWebSockets = function (userId) {
   if (userConnections.has(userId)) {
