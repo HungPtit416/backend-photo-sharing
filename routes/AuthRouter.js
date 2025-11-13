@@ -124,14 +124,14 @@ router.post("/logout", async (req, res) => {
         // ============= ADD TOKEN TO BLACKLIST =============
         if (typeof global.blacklistToken === "function") {
           global.blacklistToken(token);
-          console.log(`🚫 Token blacklisted for user: ${decoded.userId}`);
+          console.log(`Token blacklisted for user: ${decoded.userId}`);
         }
 
         // ============= DISCONNECT ALL USER'S WEBSOCKETS =============
         if (typeof global.disconnectUserWebSockets === "function") {
           global.disconnectUserWebSockets(decoded.userId.toString());
           console.log(
-            `🔌 Disconnected all WebSockets for user: ${decoded.userId}`
+            `Disconnected all WebSockets for user: ${decoded.userId}`
           );
         }
       } catch (tokenError) {

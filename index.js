@@ -10,7 +10,6 @@ require("dotenv").config();
 const dbConnect = require("./db/dbConnect");
 const UserRouter = require("./routes/UserRouter");
 const PhotoRouter = require("./routes/PhotoRouter");
-const PostRouter = require("./routes/PostRouter");
 const AuthRouter = require("./routes/AuthRouter");
 const ChatRouter = require("./routes/ChatRouter");
 const requireAuth = require("./middleware/auth");
@@ -40,7 +39,7 @@ const tokenBlacklist = new Set();
 
 function blacklistToken(token) {
   tokenBlacklist.add(token);
-  console.log("🚫 Token blacklisted");
+  console.log("Token blacklisted");
 }
 
 function isTokenBlacklisted(token) {
@@ -101,18 +100,18 @@ function broadcastOnlineInfo() {
     }
   });
 
-  console.log(`📊 Broadcast: ${onlineCount} users online:`, onlineUserIds);
+  console.log(`Broadcast: ${onlineCount} users online:`, onlineUserIds);
 }
 
 function addUserConnection(userId, ws) {
   if (!userConnections.has(userId)) {
     userConnections.set(userId, new Set());
-    console.log(`🆕 New unique user online: ${userId}`);
+    console.log(`New unique user online: ${userId}`);
   }
 
   userConnections.get(userId).add(ws);
   const connectionCount = userConnections.get(userId).size;
-  console.log(`➕ User ${userId} added (${connectionCount} connections)`);
+  console.log(`User ${userId} added (${connectionCount} connections)`);
 }
 
 function removeUserConnection(userId, ws) {
@@ -121,12 +120,10 @@ function removeUserConnection(userId, ws) {
 
     if (userConnections.get(userId).size === 0) {
       userConnections.delete(userId);
-      console.log(`🗑️ User ${userId} disconnected`);
+      console.log(`User ${userId} disconnected`);
     } else {
       console.log(
-        `➖ User ${userId} removed (${
-          userConnections.get(userId).size
-        } remaining)`
+        `User ${userId} removed (${userConnections.get(userId).size} remaining)`
       );
     }
   }
@@ -134,19 +131,19 @@ function removeUserConnection(userId, ws) {
 
 // WebSocket handler
 wss.on("connection", async (ws, req) => {
-  console.log("🔌 New WebSocket connection attempt");
+  console.log("New WebSocket connection attempt");
 
   const urlParams = new URLSearchParams(req.url.split("?")[1]);
   const token = urlParams.get("token");
 
   if (!token) {
-    console.log("❌ No token provided");
+    console.log("No token provided");
     ws.close(1008, "No authentication token provided");
     return;
   }
 
   if (isTokenBlacklisted(token)) {
-    console.log("❌ Token blacklisted");
+    console.log("Token blacklisted");
     ws.close(1008, "Token has been invalidated");
     return;
   }
@@ -159,7 +156,7 @@ wss.on("connection", async (ws, req) => {
 
     const user = await User.findById(decoded.userId);
     if (!user) {
-      console.log("❌ User not found");
+      console.log("User not found");
       ws.close(1008, "User not found");
       return;
     }
@@ -172,7 +169,7 @@ wss.on("connection", async (ws, req) => {
     ws.token = token;
 
     addUserConnection(userId, ws);
-    console.log(`✅ User connected: ${username} (${userId})`);
+    console.log(`User connected: ${username} (${userId})`);
 
     ws.send(
       JSON.stringify({
@@ -201,7 +198,7 @@ wss.on("connection", async (ws, req) => {
 
     ws.on("close", () => {
       if (ws.userId) {
-        console.log(`👋 Connection closed: ${ws.username}`);
+        console.log(`Connection closed: ${ws.username}`);
         removeUserConnection(ws.userId, ws);
         broadcastOnlineInfo();
       }
@@ -215,6 +212,7 @@ wss.on("connection", async (ws, req) => {
       }
     });
   } catch (error) {
+    console.error("Token verification failed:", error.message);
     console.error("Token verification failed:", error.message);
     ws.close(1008, "Invalid authentication token");
   }    
@@ -239,7 +237,7 @@ global.broadcastChatMessage = function (chatId, messageData, senderId) {
 global.disconnectUserWebSockets = function (userId) {
   if (userConnections.has(userId)) {
     const connections = userConnections.get(userId);
-    console.log(`🔌 Disconnecting all WebSockets for user: ${userId}`);
+    console.log(`Disconnecting all WebSockets for user: ${userId}`);
 
     connections.forEach((ws) => {
       if (ws.readyState === 1) {
@@ -253,8 +251,8 @@ global.disconnectUserWebSockets = function (userId) {
 };
 
 server.listen(8081, () => {
-  console.log("🚀 Server listening on http://localhost:8081");
-  console.log("🔌 WebSocket server ready on ws://localhost:8081");
+  console.log("Server listening on http://localhost:8081");
+  console.log("WebSocket server ready on ws://localhost:8081");
 });
 
 process.on("SIGTERM", () => {
