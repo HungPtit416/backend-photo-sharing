@@ -1,46 +1,69 @@
+# Photo Sharing Backend
+
+Backend API cho ứng dụng chia sẻ ảnh với chức năng real-time.
+
+## Công Nghệ
+
+- Node.js + Express
+- MongoDB + Mongoose
+- JWT Authentication
+- WebSocket (real-time online users)
+- Server-Sent Events (real-time notifications)
+- Multer (upload ảnh)
+
+## Tính Năng
+
+- Xác thực người dùng (đăng ký, đăng nhập, đăng xuất)
+- Quản lý hồ sơ người dùng
+- Upload và quản lý ảnh
+- Bình luận trên ảnh
+- Theo dõi người dùng khác (followers/following)
+- Hiển thị số người dùng online real-time
+- Token blacklist để đăng xuất an toàn
+
+## Cài Đặt
+
+```bash
+npm install
+```
+
+
+## Chạy Ứng Dụng
+
+```bash
+npm start
+```
+
+Server sẽ chạy tại `http://localhost:3001`
+
+## API Endpoints
+
+### Authentication
+- POST `/admin/register` - Đăng ký tài khoản
+- POST `/admin/login` - Đăng nhập
+- POST `/admin/logout` - Đăng xuất
+
+### User (Protected)
+- GET `/api/user/list` - Danh sách người dùng
+- GET `/api/user/:id` - Thông tin người dùng cụ thể
+
+### Photo (Protected)
+- POST `/api/photo/new` - Upload ảnh mới
+- GET `/api/photo/photosOfUser/:id` - Ảnh của người dùng
+- POST `/api/photo/:photo_id/comments` - Thêm bình luận
+- DELETE `/api/photo/:photo_id` - Xóa ảnh
+
+### Real-time
+- WebSocket `/` - Kết nối theo dõi online users
+- SSE `/api/stream` - Server-Sent Events cho notifications
+
+## Cấu Trúc Thư Mục
 
 ```
-photo-sharing-backend
-├─ .env
-├─ db
-│  ├─ dbConnect.js
-│  ├─ dbLoad.js
-│  ├─ photoModel.js
-│  ├─ postModel.js
-│  ├─ schemaInfo.js
-│  └─ userModel.js
-├─ images
-│  ├─ 1748538444512-497026849.jpg
-│  ├─ 1748539181149-860378073.jpg
-│  ├─ 1748539697151-734376523.jpg
-│  ├─ 1748540260334-505598719.jpg
-│  ├─ 1748540314395-812853412.jpg
-│  ├─ 1748540946323-559868379.jpg
-│  ├─ 1748884569849-158801138.jpg
-│  ├─ 1761573792866-904213794.jpg
-│  ├─ kenobi1.jpg
-│  ├─ kenobi2.jpg
-│  ├─ kenobi3.jpg
-│  ├─ kenobi4.jpg
-│  ├─ ludgate1.jpg
-│  ├─ malcolm1.jpg
-│  ├─ malcolm2.jpg
-│  ├─ ouster.jpg
-│  ├─ ripley1.jpg
-│  ├─ ripley2.jpg
-│  ├─ took1.jpg
-│  └─ took2.jpg
-├─ index.js
-├─ middleware
-│  └─ auth.js
-├─ modelData
-│  └─ models.js
-├─ package-lock.json
-├─ package.json
-└─ routes
-   ├─ AuthRouter.js
-   ├─ PhotoRouter.js
-   ├─ PostRouter.js
-   └─ UserRouter.js
-
+├── db/                 # Database models và kết nối
+├── routes/             # API routes
+├── middleware/         # Authentication middleware
+├── realtime/           # WebSocket và SSE
+├── images/             # Lưu trữ ảnh upload
+└── index.js           # Entry point
 ```
